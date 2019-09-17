@@ -1,0 +1,57 @@
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6
+github.com/flynn/noise
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/mattn/go-colorable v0.1.2
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.8
+github.com/mattn/go-isatty
+# github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+github.com/mgutz/ansi
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/sirupsen/logrus v1.4.2
+github.com/sirupsen/logrus
+# github.com/skycoin/dmsg v0.0.0-20190904181013-b781e3cbebc6
+github.com/skycoin/dmsg
+github.com/skycoin/dmsg/cipher
+github.com/skycoin/dmsg/disc
+github.com/skycoin/dmsg/ioutil
+github.com/skycoin/dmsg/noise
+# github.com/skycoin/skycoin v0.26.0
+github.com/skycoin/skycoin/src/util/logging
+github.com/skycoin/skycoin/src/cipher
+github.com/skycoin/skycoin/src/cipher/base58
+github.com/skycoin/skycoin/src/cipher/ripemd160
+github.com/skycoin/skycoin/src/cipher/secp256k1-go
+github.com/skycoin/skycoin/src/cipher/secp256k1-go/secp256k1-go2
+# github.com/skycoin/skywire v0.1.2-0.20190908190142-bc3545831264
+github.com/skycoin/skywire/pkg/util/pathutil
+# github.com/spf13/cobra v0.0.5
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.3
+github.com/spf13/pflag
+# github.com/stretchr/testify v1.4.0
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+# golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
+golang.org/x/crypto/ssh/terminal
+golang.org/x/crypto/blake2b
+golang.org/x/crypto/blake2s
+golang.org/x/crypto/chacha20poly1305
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/internal/chacha20
+golang.org/x/crypto/internal/subtle
+golang.org/x/crypto/poly1305
+# golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
+golang.org/x/net/nettest
+# golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+golang.org/x/sys/cpu
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2
