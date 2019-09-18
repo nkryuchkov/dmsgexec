@@ -70,14 +70,57 @@ func (g *CLIGateway) Status(_ *struct{}, out *bool) error {
 	return nil
 }
 
+func (g *CLIGateway) Whitelist(_ *struct{}, out *[]cipher.PubKey) error {
+	pks, err := g.auth.All()
+	if err != nil {
+		return err
+	}
+	*out = make([]cipher.PubKey, 0, len(pks))
+	for pk, ok := range pks {
+		if ok {
+			*out = append(*out, pk)
+		}
+	}
+	return nil
+}
+
+func (g *CLIGateway) WhitelistAdd(in *[]cipher.PubKey, _ *struct{}) error {
+	return g.auth.Add(*in...)
+}
+
+func (g *CLIGateway) WhitelistRemove(in *[]cipher.PubKey, _ *struct{}) error {
+	return g.auth.Remove(*in...)
+}
+
 func Exec(conn io.ReadWriteCloser, cmd Command) ([]byte, error) {
 	var out []byte
 	err := rpc.NewClient(conn).Call("CLIGateway.Exec", &cmd, &out)
 	return out, err
 }
 
+/*
+	RPC client side operations.
+*/
+
+// Used for RPC calls
+var empty struct{}
+
 func Status(conn io.ReadWriteCloser) (bool, error) {
 	var out bool
-	err := rpc.NewClient(conn).Call("CLIGateway.Status", &struct{}{}, &out)
+	err := rpc.NewClient(conn).Call("CLIGateway.Status", &empty, &out)
 	return out, err
+}
+
+func ViewWhitelist(conn io.ReadWriteCloser) ([]cipher.PubKey, error) {
+	var pks []cipher.PubKey
+	err := rpc.NewClient(conn).Call("CLIGateway.Whitelist", &empty, &pks)
+	return pks, err
+}
+
+func WhitelistAdd(conn io.ReadWriteCloser, pks ...cipher.PubKey) error {
+	return rpc.NewClient(conn).Call("CLIGateway.WhitelistAdd", &pks, &empty)
+}
+
+func WhitelistRemove(conn io.ReadWriteCloser, pks ...cipher.PubKey) error {
+	return rpc.NewClient(conn).Call("CLIGateway.WhitelistRemove", &pks, &empty)
 }

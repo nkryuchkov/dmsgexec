@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/skycoin/dmsg/cipher"
 )
 
 type Whitelist interface {
 	Get(pk cipher.PubKey) (bool, error)
+	All() (map[cipher.PubKey]bool, error)
 	Add(pks ...cipher.PubKey) error
 	Remove(pks ...cipher.PubKey) error
 }
@@ -29,8 +29,6 @@ func NewJsonFileWhiteList(fileName string) (Whitelist, error) {
 
 type jsonFileWhitelist struct {
 	fileName string
-	once     sync.Once
-	mx       sync.Mutex
 }
 
 func (w *jsonFileWhitelist) Get(pk cipher.PubKey) (bool, error) {
@@ -40,6 +38,15 @@ func (w *jsonFileWhitelist) Get(pk cipher.PubKey) (bool, error) {
 		return nil
 	})
 	return ok, jsonFileErr(err)
+}
+
+func (w *jsonFileWhitelist) All() (map[cipher.PubKey]bool, error) {
+	var out map[cipher.PubKey]bool
+	err := w.open(os.O_RDONLY|os.O_CREATE, func(pkMap map[cipher.PubKey]bool, _ *os.File) error {
+		out = pkMap
+		return nil
+	})
+	return out, jsonFileErr(err)
 }
 
 func (w *jsonFileWhitelist) Add(pks ...cipher.PubKey) error {

@@ -3,17 +3,15 @@ package commands
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 
-	"github.com/skycoin/skywire/pkg/util/pathutil"
 	"github.com/spf13/cobra"
 
 	"github.com/SkycoinProject/dmsgexec"
 	"github.com/SkycoinProject/dmsgexec/internal/cmdutil"
 )
 
-var keysFile = filepath.Join(pathutil.HomeDir(), ".dmsgssh/keys.json")
-var authFile = filepath.Join(pathutil.HomeDir(), ".dmsgssh/whitelist.json")
+var keysFile = cmdutil.DefaultKeysPath()
+var authFile = cmdutil.DefaultAuthPath()
 var conf = dmsgexec.DefaultServerConfig(dmsgexec.Keys{})
 
 func init() {

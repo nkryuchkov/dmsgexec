@@ -3,6 +3,7 @@ package dmsgexec
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/skycoin/dmsg/cipher"
 )
@@ -26,6 +27,17 @@ func ReadKeys(fileName string) (Keys, error) {
 }
 
 func WriteKeys(fileName, seed string) (Keys, error) {
+	fileName, err := filepath.Abs(fileName)
+	if err != nil {
+		return Keys{}, err
+	}
+
+	// Ensure conf directory exists.
+	if err := os.MkdirAll(filepath.Dir(fileName), 0750); err != nil {
+		return Keys{}, err
+	}
+
+	// Generate keys.
 	pk, sk, err := cipher.GenerateDeterministicKeyPair([]byte(seed))
 	if err != nil {
 		return Keys{}, err

@@ -4,20 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"path/filepath"
 
 	"github.com/skycoin/skycoin/src/cipher/bip39"
-	"github.com/skycoin/skywire/pkg/util/pathutil"
 	"github.com/spf13/cobra"
 
 	"github.com/SkycoinProject/dmsgexec"
+	"github.com/SkycoinProject/dmsgexec/internal/cmdutil"
 )
 
 func init() {
 	rootCmd.AddCommand(keygenCmd)
 }
 
-var keysFile = filepath.Join(pathutil.HomeDir(), ".dmsgssh/keys.json")
+var keysFile = cmdutil.DefaultKeysPath()
 var seed string
 
 func init() {

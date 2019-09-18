@@ -11,13 +11,15 @@ import (
 	"github.com/SkycoinProject/dmsgexec/internal/cmdutil"
 )
 
-var cmdIn dmsgexec.Command
 var cliNet = dmsgexec.DefaultCLINet
 var cliAddr = dmsgexec.DefaultCLIAddr
+var cmdIn dmsgexec.Command
 
 func init() {
-	cmdIn.DstPort = dmsgexec.DefaultDmsgPort
+	rootCmd.PersistentFlags().StringVar(&cliNet, "cli-net", cliNet, "network to use for dialing to dmsgexec-server")
+	rootCmd.PersistentFlags().StringVar(&cliAddr, "cli-addr", cliAddr, "address to use for dialing to dmsgexec-server")
 
+	cmdIn.DstPort = dmsgexec.DefaultDmsgPort
 	rootCmd.Flags().Var(&cmdIn.DstPK, "pk", "remote public key")
 	rootCmd.Flags().Uint16Var(&cmdIn.DstPort, "port", cmdIn.DstPort, "remote port")
 	rootCmd.Flags().StringVar(&cmdIn.Name, "cmd", cmdIn.Name, "command to execute")
@@ -28,27 +30,16 @@ var rootCmd = &cobra.Command{
 	Use:   "dmsgexec",
 	Short: "Run commands over dmsg",
 	Run: func(*cobra.Command, []string) {
-		ctx, cancel := cmdutil.MakeSignalCtx()
-		defer cancel()
-
-		conn, err := net.Dial(cliNet, cliAddr)
-		if err != nil {
-			log.Fatalf("failed to dial to dmsgexec-server: %v", err)
-		}
-
-		go func() {
-			<-ctx.Done()
-			_ = conn.Close() //nolint:errcheck
-		}()
-
-		out, err := dmsgexec.Exec(conn, cmdIn)
-		if err != nil {
-			log.Fatalf("execution failed: %v", err)
-		}
-		if out[len(out)-1] != '\n' {
-			out = append(out, '\n')
-		}
-		fmt.Print(out)
+		cmdutil.SignalDial(cliNet, cliAddr, func(conn net.Conn) {
+			out, err := dmsgexec.Exec(conn, cmdIn)
+			if err != nil {
+				log.Fatalf("execution failed: %v", err)
+			}
+			if out[len(out)-1] != '\n' {
+				out = append(out, '\n')
+			}
+			fmt.Print(out)
+		})
 	},
 }
 
