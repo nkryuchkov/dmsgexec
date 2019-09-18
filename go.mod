@@ -3,6 +3,7 @@ module github.com/SkycoinProject/dmsgexec
 go 1.12
 
 require (
+	github.com/sirupsen/logrus v1.4.2
 	github.com/skycoin/dmsg v0.0.0-20190904181013-b781e3cbebc6
 	github.com/skycoin/skycoin v0.26.0
 	github.com/skycoin/skywire v0.1.2-0.20190908190142-bc3545831264

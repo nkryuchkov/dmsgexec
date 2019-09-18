@@ -8,10 +8,15 @@ import (
 	"os"
 	"sync"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skycoin/dmsg"
 	"github.com/skycoin/dmsg/disc"
 	"github.com/skycoin/skycoin/src/util/logging"
 )
+
+func init() {
+	logging.SetLevel(logrus.TraceLevel)
+}
 
 const (
 	DefaultDmsgDisc = "http://messaging.discovery.skywire.skycoin.com"
@@ -48,7 +53,7 @@ type Server struct {
 
 func NewServer(auth Whitelist, conf ServerConfig) *Server {
 	return &Server{
-		log:   logging.MustGetLogger("dmsgexec_server"),
+		log:   logging.MustGetLogger("dmsgexec"),
 		conf:  conf,
 		auth:  auth,
 		dmsgC: dmsg.NewClient(conf.Keys.PubKey, conf.Keys.SecKey, disc.NewHTTP(conf.DmsgDisc)),
@@ -79,6 +84,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	if err := dmsgS.Register(NewDmsgGateway(ctx)); err != nil {
 		return err
 	}
+	s.log.Println("dmsg.Client is up and running!")
 
 	// Prepare CLI.
 	cliL, err := net.Listen(s.conf.CLINet, s.conf.CLIAddr)
@@ -90,9 +96,10 @@ func (s *Server) Serve(ctx context.Context) error {
 		_ = cliL.Close() //nolint:errcheck
 	}()
 	cliS := rpc.NewServer()
-	if err := cliS.Register(NewCLIGateway(ctx, s.auth, s.dmsgC)); err != nil {
+	if err := cliS.Register(NewCLIGateway(ctx, s.log, s.auth, s.dmsgC)); err != nil {
 		return err
 	}
+	s.log.Println("CLI server is up and running!")
 
 	// Serve.
 	wg := new(sync.WaitGroup)
@@ -116,8 +123,8 @@ func (s *Server) Serve(ctx context.Context) error {
 		}
 	}()
 	go func() {
+		defer wg.Done()
 		cliS.Accept(cliL)
-		wg.Done()
 	}()
 	wg.Wait()
 	return nil

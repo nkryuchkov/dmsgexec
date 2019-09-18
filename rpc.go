@@ -8,6 +8,7 @@ import (
 
 	"github.com/skycoin/dmsg"
 	"github.com/skycoin/dmsg/cipher"
+	"github.com/skycoin/skycoin/src/util/logging"
 )
 
 type Command struct {
@@ -37,19 +38,23 @@ func (g *DmsgGateway) Exec(in *Command, out *[]byte) error {
 
 type CLIGateway struct {
 	ctx   context.Context
+	log  *logging.Logger
 	auth  Whitelist
 	dmsgC *dmsg.Client
 }
 
-func NewCLIGateway(ctx context.Context, auth Whitelist, dmsgC *dmsg.Client) *CLIGateway {
+func NewCLIGateway(ctx context.Context, log *logging.Logger, auth Whitelist, dmsgC *dmsg.Client) *CLIGateway {
 	return &CLIGateway{
 		ctx:   ctx,
+		log:   log,
 		auth:  auth,
 		dmsgC: dmsgC,
 	}
 }
 
 func (g *CLIGateway) Exec(in *Command, out *[]byte) error {
+	g.log.WithField("request", in).Info("Attempting exec.")
+
 	conn, err := g.dmsgC.Dial(g.ctx, in.DstPK, in.DstPort)
 	if err != nil {
 		return err

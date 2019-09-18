@@ -38,6 +38,7 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("failed to read keys file: %v", err)
 		}
 		conf.Keys = keys
+		log.Println("Local public key:", keys.PubKey)
 
 		whitelist, err := dmsgexec.NewJsonFileWhiteList(authFile)
 		if err != nil {
