@@ -94,7 +94,7 @@ func TestNewServer(t *testing.T) {
 	conn, err := net.Dial(aConf.CLINet, aConf.CLIAddr)
 	require.NoError(t, err)
 
-	b, err := Request(conn, Command{
+	b, err := Exec(conn, Command{
 		DstPK:   bPK,
 		DstPort: DefaultDmsgPort,
 		Name:    "echo",

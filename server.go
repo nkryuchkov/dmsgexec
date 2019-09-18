@@ -18,7 +18,7 @@ const (
 	DefaultDmsgDisc = "http://messaging.discovery.skywire.skycoin.com"
 	DefaultDmsgPort = uint16(222)
 	DefaultCLINet   = "unix"
-	DefaultCLIAddr  = "dmsgexec.sock"
+	DefaultCLIAddr  = "/tmp/dmsgexec.sock"
 )
 
 type ServerConfig struct {
@@ -59,9 +59,14 @@ func NewServer(auth Whitelist, conf ServerConfig) *Server {
 }
 
 func (s *Server) Serve(ctx context.Context) error {
+	if s.hasOldInstance() {
+		return fmt.Errorf("an instance of %s is already running", os.Args[0])
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	// Prepare dmsg.
 	if err := s.dmsgC.InitiateServerConnections(ctx, 1); err != nil {
 		return err
 	}
@@ -71,30 +76,28 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 	go func() {
 		<-ctx.Done()
-		dmsgL.Close() //nolint:errcheck
+		_ = dmsgL.Close() //nolint:errcheck
 	}()
-
-	// TODO: pid file.
-	if s.conf.CLINet == "unix" {
-		os.Remove(s.conf.CLIAddr) //nolint:errcheck
+	dmsgS := rpc.NewServer()
+	if err := dmsgS.Register(NewDmsgGateway(ctx)); err != nil {
+		return err
 	}
+
+	// Prepare CLI.
 	cliL, err := net.Listen(s.conf.CLINet, s.conf.CLIAddr)
 	if err != nil {
 		return fmt.Errorf("failed to create cli listener: %v", err)
 	}
 	go func() {
 		<-ctx.Done()
-		cliL.Close() //nolint:errcheck
+		_ = cliL.Close() //nolint:errcheck
 	}()
-
-	dmsgS := rpc.NewServer()
-	if err := dmsgS.Register(NewDmsgGateway(ctx)); err != nil {
-		return err
-	}
 	cliS := rpc.NewServer()
 	if err := cliS.Register(NewCLIGateway(ctx, s.auth, s.dmsgC)); err != nil {
 		return err
 	}
+
+	// Serve.
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go func() {
@@ -109,7 +112,7 @@ func (s *Server) Serve(ctx context.Context) error {
 				return
 			}
 			if !ok {
-				conn.Close() //nolint:errcheck
+				_ = conn.Close() //nolint:errcheck
 				continue
 			}
 			go dmsgS.ServeConn(conn)
@@ -121,4 +124,31 @@ func (s *Server) Serve(ctx context.Context) error {
 	}()
 	wg.Wait()
 	return nil
+}
+
+func (s *Server) hasOldInstance() bool {
+	conn, err := net.Dial(s.conf.CLINet, s.conf.CLIAddr)
+	if err != nil {
+		return false
+	}
+	defer func() {_ = conn.Close()}() //nolint:errcheck
+
+	up, err := Status(conn)
+	if err != nil || !up {
+		// close old instance (if able).
+		s.log.Warn("old instance did not shutdown cleanly")
+		switch s.conf.CLINet {
+		case "unix":
+			log := s.log.WithField("unix_file", s.conf.CLIAddr)
+			if err := os.Remove(s.conf.CLIAddr); err != nil {
+				log.WithError(err).Fatal("failed to delete old unix file")
+			}
+			log.Info("deleted old unix file")
+		default:
+			s.log.Fatal("no cleanup steps possible - please manually close old instance")
+		}
+		return false
+	}
+
+	return true
 }

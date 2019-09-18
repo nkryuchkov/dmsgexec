@@ -41,7 +41,7 @@ var rootCmd = &cobra.Command{
 			_ = conn.Close() //nolint:errcheck
 		}()
 
-		out, err := dmsgexec.Request(conn, cmdIn)
+		out, err := dmsgexec.Exec(conn, cmdIn)
 		if err != nil {
 			log.Fatalf("execution failed: %v", err)
 		}

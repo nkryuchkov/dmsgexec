@@ -65,8 +65,19 @@ func (g *CLIGateway) Exec(in *Command, out *[]byte) error {
 	}
 }
 
-func Request(conn io.ReadWriteCloser, cmd Command) ([]byte, error) {
+func (g *CLIGateway) Status(_ *struct{}, out *bool) error {
+	*out = true
+	return nil
+}
+
+func Exec(conn io.ReadWriteCloser, cmd Command) ([]byte, error) {
 	var out []byte
 	err := rpc.NewClient(conn).Call("CLIGateway.Exec", &cmd, &out)
+	return out, err
+}
+
+func Status(conn io.ReadWriteCloser) (bool, error) {
+	var out bool
+	err := rpc.NewClient(conn).Call("CLIGateway.Status", &struct{}{}, &out)
 	return out, err
 }
