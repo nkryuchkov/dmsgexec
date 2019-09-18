@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/skycoin/dmsg"
-	"github.com/skycoin/dmsg/cipher"
 	"github.com/skycoin/dmsg/disc"
 	"github.com/skycoin/skycoin/src/util/logging"
 )
@@ -22,22 +21,20 @@ const (
 )
 
 type ServerConfig struct {
-	PubKey   cipher.PubKey `json:"public_key"`
-	SecKey   cipher.SecKey `json:"secret_key"`
-	DmsgDisc string        `json:"dmsg_discovery"` // address for dmsg discovery to use
-	DmsgPort uint16        `json:"dmsg_port"`      // local listening port for dmsgexec commands
-	CLINet   string        `json:"cli_net"`        // local listening network for cli
-	CLIAddr  string        `json:"cli_addr"`       // local listening address for cli
+	Keys     Keys   `json:"keys"`
+	DmsgDisc string `json:"dmsg_discovery"` // address for dmsg discovery to use
+	DmsgPort uint16 `json:"dmsg_port"`      // local listening port for dmsgexec commands
+	CLINet   string `json:"cli_net"`        // local listening network for cli
+	CLIAddr  string `json:"cli_addr"`       // local listening address for cli
 }
 
-func DefaultServerConfig(pk cipher.PubKey, sk cipher.SecKey) ServerConfig {
+func DefaultServerConfig(keys Keys) ServerConfig {
 	return ServerConfig{
-		PubKey: pk,
-		SecKey: sk,
+		Keys:     keys,
 		DmsgDisc: DefaultDmsgDisc,
 		DmsgPort: DefaultDmsgPort,
-		CLINet: DefaultCLINet,
-		CLIAddr: DefaultCLIAddr,
+		CLINet:   DefaultCLINet,
+		CLIAddr:  DefaultCLIAddr,
 	}
 }
 
@@ -54,7 +51,7 @@ func NewServer(auth Whitelist, conf ServerConfig) *Server {
 		log:   logging.MustGetLogger("dmsgexec_server"),
 		conf:  conf,
 		auth:  auth,
-		dmsgC: dmsg.NewClient(conf.PubKey, conf.SecKey, disc.NewHTTP(conf.DmsgDisc)),
+		dmsgC: dmsg.NewClient(conf.Keys.PubKey, conf.Keys.SecKey, disc.NewHTTP(conf.DmsgDisc)),
 	}
 }
 
@@ -131,7 +128,7 @@ func (s *Server) hasOldInstance() bool {
 	if err != nil {
 		return false
 	}
-	defer func() {_ = conn.Close()}() //nolint:errcheck
+	defer func() { _ = conn.Close() }() //nolint:errcheck
 
 	up, err := Status(conn)
 	if err != nil || !up {

@@ -5,8 +5,6 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/skycoin/dmsg"
-	"github.com/skycoin/dmsg/cipher"
 	"github.com/skycoin/skywire/pkg/util/pathutil"
 	"github.com/spf13/cobra"
 
@@ -14,27 +12,34 @@ import (
 	"github.com/SkycoinProject/dmsgexec/internal/cmdutil"
 )
 
-var conf = dmsgexec.DefaultServerConfig(cipher.GenerateKeyPair())
+var keysFile = filepath.Join(pathutil.HomeDir(), ".dmsgssh/keys.json")
 var authFile = filepath.Join(pathutil.HomeDir(), ".dmsgssh/whitelist.json")
+var conf = dmsgexec.DefaultServerConfig(dmsgexec.Keys{})
 
 func init() {
-	rootCmd.Flags().Var(&conf.PubKey, "pk", "public key of dmsgexec-server (random if not specified)")
-	rootCmd.Flags().Var(&conf.SecKey, "sk", "secret key of dmsgexec-server (random if not specified)")
+	rootCmd.Flags().StringVar(&keysFile, "keys-file", keysFile, "JSON file that contains local keys")
+	rootCmd.Flags().StringVar(&authFile, "auth-file", authFile, "JSON file that contains whitelisted public keys")
+
 	rootCmd.Flags().StringVar(&conf.DmsgDisc, "dmsg-disc", conf.DmsgDisc, "address of dmsg discovery to use")
 	rootCmd.Flags().Uint16Var(&conf.DmsgPort, "dmsg-port", conf.DmsgPort, "dmsg port to listen on")
 	rootCmd.Flags().StringVar(&conf.CLINet, "cli-net", conf.CLINet, "network used for CLI")
 	rootCmd.Flags().StringVar(&conf.CLIAddr, "cli-addr", conf.CLIAddr, "address used for CLI")
-	rootCmd.Flags().StringVar(&authFile, "auth-file", authFile, "JSON file that contains whitelisted public keys")
+
 }
 
 var rootCmd = &cobra.Command{
-	Use: "dmsgexec-server",
+	Use:   "dmsgexec-server",
 	Short: "Server for dmsgexec",
 	Run: func(*cobra.Command, []string) {
 		ctx, cancel := cmdutil.MakeSignalCtx()
 		defer cancel()
 
-		fmt.Println("DMSG ADDRESS:", dmsg.Addr{PK: conf.PubKey, Port: conf.DmsgPort})
+		keys, err := dmsgexec.ReadKeys(keysFile)
+		if err != nil {
+			fmt.Println("Run 'dmsgexec keygen' to generate keys file.")
+			log.Fatalf("failed to read keys file: %v", err)
+		}
+		conf.Keys = keys
 
 		whitelist, err := dmsgexec.NewJsonFileWhiteList(authFile)
 		if err != nil {

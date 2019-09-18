@@ -29,8 +29,8 @@ func NewJsonFileWhiteList(fileName string) (Whitelist, error) {
 
 type jsonFileWhitelist struct {
 	fileName string
-	once sync.Once
-	mx   sync.Mutex
+	once     sync.Once
+	mx       sync.Mutex
 }
 
 func (w *jsonFileWhitelist) Get(pk cipher.PubKey) (bool, error) {

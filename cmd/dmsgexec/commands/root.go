@@ -25,7 +25,7 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use: "dmsgexec",
+	Use:   "dmsgexec",
 	Short: "Run commands over dmsg",
 	Run: func(*cobra.Command, []string) {
 		ctx, cancel := cmdutil.MakeSignalCtx()
