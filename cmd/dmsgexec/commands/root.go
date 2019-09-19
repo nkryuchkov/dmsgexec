@@ -38,7 +38,7 @@ var rootCmd = &cobra.Command{
 			if out[len(out)-1] != '\n' {
 				out = append(out, '\n')
 			}
-			fmt.Print(out)
+			fmt.Print(string(out))
 		})
 	},
 }
