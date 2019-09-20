@@ -35,7 +35,7 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				log.Fatalf("execution failed: %v", err)
 			}
-			if out[len(out)-1] != '\n' {
+			if len(out) == 0 || out[len(out)-1] != '\n' {
 				out = append(out, '\n')
 			}
 			fmt.Print(string(out))
